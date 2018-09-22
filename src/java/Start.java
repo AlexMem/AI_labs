@@ -13,30 +13,34 @@ public class Start {
 
     private static final long sleepDuration = TimeUnit.SECONDS.toMillis(5);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Thread mainThread = Thread.currentThread();
 
         long startTimestamp;
         long finishTimestamp;
 
-        WorkingStack workingStack = new WorkingStack(initialField, finalField);
-        Thread worker = new Thread(() -> workingStack.search(mainThread));
-        worker.setPriority(Thread.MAX_PRIORITY);
+//        for (int i = 0; i < 100; i++) {
+            WorkingStack workingStack = new WorkingStack(initialField, finalField);
+            Thread worker = new Thread(() -> workingStack.search(mainThread));
+            worker.setPriority(Thread.MAX_PRIORITY);
 
-        startTimestamp = System.currentTimeMillis();
-        worker.start();
-        while (worker.isAlive()) {
-            try {
-                System.out.println("Work in progress: steps = " + workingStack.getSteps() +
-                        ", stack size = " + workingStack.getStack().size() +
-                        ", set size = " + workingStack.getFields().size());
-                Thread.sleep(sleepDuration);
-            } catch (InterruptedException e) {
-                break;
+            startTimestamp = System.currentTimeMillis();
+            worker.start();
+            while (worker.isAlive()) {
+                try {
+                    /*System.out.println("Work in progress: steps = " + workingStack.getSteps() +
+                            ", stack size = " + workingStack.getStack().size() +
+                            ", set size = " + workingStack.getFields().size());*/
+                    Thread.sleep(sleepDuration);
+                } catch (InterruptedException e) {
+                    break;
+                }
             }
-        }
-        finishTimestamp = System.currentTimeMillis();
+            finishTimestamp = System.currentTimeMillis();
 
-        System.out.println("Time taken: " + (finishTimestamp - startTimestamp) + " ms");
+            System.out.println(".\tTime taken: " + (finishTimestamp - startTimestamp) + " ms\n");
+
+            Thread.sleep(500);
+//        }
     }
 }

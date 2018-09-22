@@ -16,16 +16,18 @@ public class WorkingStack {
     private long steps;
     private int maxLayer;
 
+    private final Set<Stack<State>> winnerStackSet = new HashSet<>();
+
     public WorkingStack(Field initialField, Field finalField) {
         stack.add(new State(initialField));
         fields.add(initialField);
         this.finalField = finalField;
         maxLayer = 2;
 
-        System.out.println("Initial field:");
+        /*System.out.println("Initial field:");
         System.out.println(initialField);
         System.out.println("Final field:");
-        System.out.println(finalField);
+        System.out.println(finalField);*/
     }
 
     public Stack<State> getStack() {
@@ -48,16 +50,17 @@ public class WorkingStack {
         return stack.size();
     }
 
+    @SuppressWarnings("unchecked")
     public void search(Thread parent) {
-        for (; steps != MAX_NUMBER_OF_STEPS; ++maxLayer) {
+        for (; maxLayer <= 17; ++maxLayer) {
             while (true) {
                 State state = stack.peek();
                 if (state.field.equals(finalField)) {
                     System.out.println("Decision found on layer " + stack.size() + "! Steps = " + steps);
-                    System.out.println("Found field:");
-                    System.out.println(state.field);
-                    parent.interrupt();
-                    return;
+//                    stack.forEach(System.out::println);
+//                    parent.interrupt();
+//                    ret
+                    winnerStackSet.add((Stack<State>) stack.clone());
                 }
 
                 try {
@@ -71,12 +74,22 @@ public class WorkingStack {
                         fields.clear();
                         break;
                     }
-                    stack.pop();
+                    fields.remove(stack.pop().field);
                 } catch (FieldRepeatsException e) {
                 }
             }
         }
-        System.out.println("Decision not found absolute!");
+
+        if (winnerStackSet.isEmpty()) {
+            System.out.println("Decision not found absolute!");
+        } else {
+            winnerStackSet.forEach(states -> {
+                System.out.println("\nDecision found on layer " + states.size());
+                states.forEach(System.out::println);
+            });
+        }
+
+        parent.interrupt();
     }
 
     private class State {
@@ -112,6 +125,11 @@ public class WorkingStack {
 
         public void recountAvailableDirections() {
             availableDirections = countAvailableDirections();
+        }
+
+        @Override
+        public String toString() {
+            return field.toString();
         }
 
         private Direction chooseDirection() {
