@@ -40,7 +40,7 @@ public class Start {
 
             System.out.println(".\tTime taken: " + (finishTimestamp - startTimestamp) + " ms\n");
 
-            Thread.sleep(500);
+//            Thread.sleep(500);
 //        }
     }
 }

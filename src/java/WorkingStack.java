@@ -56,11 +56,14 @@ public class WorkingStack {
             while (true) {
                 State state = stack.peek();
                 if (state.field.equals(finalField)) {
-                    System.out.println("Decision found on layer " + stack.size() + "! Steps = " + steps);
+                    System.out.print("Decision found on layer " + stack.size() + "! Steps = " + steps);
+                    System.out.println(" " + winnerStackSet.contains(stack));
 //                    stack.forEach(System.out::println);
 //                    parent.interrupt();
 //                    ret
-                    winnerStackSet.add((Stack<State>) stack.clone());
+                    if (!winnerStackSet.contains(stack)) {
+                        winnerStackSet.add((Stack<State>) stack.clone());
+                    }
                 }
 
                 try {
@@ -72,6 +75,7 @@ public class WorkingStack {
                     if (stack.size() == 1 && e instanceof NoAvailableDirectionsException) {
                         stack.peek().recountAvailableDirections();
                         fields.clear();
+                        steps = 0;
                         break;
                     }
                     fields.remove(stack.pop().field);
@@ -83,9 +87,10 @@ public class WorkingStack {
         if (winnerStackSet.isEmpty()) {
             System.out.println("Decision not found absolute!");
         } else {
-            winnerStackSet.forEach(states -> {
-                System.out.println("\nDecision found on layer " + states.size());
-                states.forEach(System.out::println);
+            winnerStackSet.forEach(stack -> {
+                System.out.println("\nDecision found on layer " + stack.size());
+                stack.forEach(System.out::println);
+                System.out.println("HashCode = " + stack.hashCode());
             });
         }
 
@@ -125,6 +130,11 @@ public class WorkingStack {
 
         public void recountAvailableDirections() {
             availableDirections = countAvailableDirections();
+        }
+
+        @Override
+        public int hashCode() {
+            return field.hashCode();
         }
 
         @Override
