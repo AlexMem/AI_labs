@@ -10,24 +10,21 @@ public class WorkingStack {
 
     private final static long MAX_NUMBER_OF_STEPS = Long.MAX_VALUE;
 
-    private final Stack<State> stack = new Stack<>();
+    private final Stack<State> stack = new OwnStack<>();
     private final Set<Field> fields = new HashSet<>();
     private final Field finalField;
     private long steps;
-    private int maxLayer;
+    private int layer;
+    private /*final*/ int maxLayer;
 
-    private final Set<Stack<State>> winnerStackSet = new HashSet<>();
+    private final Set<Stack<State>> decisions = new HashSet<>();
 
-    public WorkingStack(Field initialField, Field finalField) {
+    public WorkingStack(Field initialField, Field finalField, int maxLayer) {
+        this.finalField = finalField;
         stack.add(new State(initialField));
         fields.add(initialField);
-        this.finalField = finalField;
-        maxLayer = 2;
-
-        /*System.out.println("Initial field:");
-        System.out.println(initialField);
-        System.out.println("Final field:");
-        System.out.println(finalField);*/
+        this.layer = 2;
+        this.maxLayer = maxLayer;
     }
 
     public Stack<State> getStack() {
@@ -42,62 +39,70 @@ public class WorkingStack {
         return steps;
     }
 
-    public int getMaxLayer() {
-        return maxLayer;
+    public int getLayer() {
+        return layer;
     }
 
     public int getCurrentLayer() {
         return stack.size();
     }
 
-    @SuppressWarnings("unchecked")
-    public void search(Thread parent) {
-        for (; maxLayer <= 17; ++maxLayer) {
-            while (true) {
-                State state = stack.peek();
-                if (state.field.equals(finalField)) {
-                    System.out.print("Decision found on layer " + stack.size() + "! Steps = " + steps);
-                    System.out.println(" " + winnerStackSet.contains(stack));
-//                    stack.forEach(System.out::println);
-//                    parent.interrupt();
-//                    ret
-                    if (!winnerStackSet.contains(stack)) {
-                        winnerStackSet.add((Stack<State>) stack.clone());
-                    }
-                }
-
-                try {
-                    State nextState = state.nextState();
-                    ++steps;
-                    stack.push(nextState);
-                    fields.add(nextState.field);
-                } catch (NoAvailableDirectionsException | MaxLayerReachedException e) {
-                    if (stack.size() == 1 && e instanceof NoAvailableDirectionsException) {
-                        stack.peek().recountAvailableDirections();
-                        fields.clear();
-                        steps = 0;
-                        break;
-                    }
-                    fields.remove(stack.pop().field);
-                } catch (FieldRepeatsException e) {
-                }
-            }
-        }
-
-        if (winnerStackSet.isEmpty()) {
-            System.out.println("Decision not found absolute!");
-        } else {
-            winnerStackSet.forEach(stack -> {
-                System.out.println("\nDecision found on layer " + stack.size());
-                stack.forEach(System.out::println);
-                System.out.println("HashCode = " + stack.hashCode());
-            });
-        }
-
-        parent.interrupt();
+    public Set<Stack<State>> getDecisions() {
+        return decisions;
     }
 
-    private class State {
+    @SuppressWarnings("unchecked")
+    public WorkingStack search() {
+//        for (; layer <= maxLayer; ++layer) {
+        while (true) {
+            State state = stack.peek();
+            if (state.field.equals(finalField)) {
+                if (!decisions.contains(stack)) {
+                    ((OwnStack<State>) stack).setSteps(steps);
+                    decisions.add((Stack<State>) stack.clone());
+                }
+            }
+
+            try {
+                State nextState = state.nextState();
+                ++steps;
+                stack.push(nextState);
+                fields.add(nextState.field);
+            } catch (NoAvailableDirectionsException | MaxLayerReachedException e) {
+                if (stack.size() == 1 && e instanceof NoAvailableDirectionsException) {
+                    stack.peek().recountAvailableDirections();
+                    fields.clear();
+                    fields.add(stack.peek().field);
+                    steps = 0;
+                    break;
+                }
+                fields.remove(stack.pop().field);
+            } catch (FieldRepeatsException e) {
+            }
+        }
+//        }
+
+        return this;
+    }
+
+    public void printAllFoundDecisions(boolean detailed) {
+        if (decisions.isEmpty()) {
+            System.out.println("Decisions not found absolute!");
+        } else {
+            System.out.println("Max layer = " + maxLayer + ". Found " + decisions.size() + " decisions:");
+            decisions.stream().sorted(Comparator.comparingInt(Stack::size))
+                     .forEach(stack -> {
+                         System.out.println("\t\nDecision found on layer " + stack.size());
+                         System.out.println("\tHashCode = " + stack.hashCode());
+                         System.out.println("\tSteps done = " + ((OwnStack<State>) stack).getSteps());
+                         if (detailed) {
+                             stack.forEach(System.out::println);
+                         }
+                     });
+        }
+    }
+
+    class State {
 
         private Field field;
         private List<Direction> availableDirections;
@@ -112,7 +117,7 @@ public class WorkingStack {
                 throw new NoAvailableDirectionsException();
             }
 
-            if (stack.size() == maxLayer) {
+            if (stack.size() == layer) {
                 throw new MaxLayerReachedException();
             }
 
@@ -130,6 +135,14 @@ public class WorkingStack {
 
         public void recountAvailableDirections() {
             availableDirections = countAvailableDirections();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof State)) {
+                return false;
+            }
+            return field.equals(((State) o).field);
         }
 
         @Override

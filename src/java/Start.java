@@ -1,6 +1,11 @@
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Start {
+
+    private static final int MAX_LAYER = 35;
 
     private static final Integer $ = null;
 
@@ -11,36 +16,21 @@ public class Start {
                                                                       {4, $, 5},
                                                                       {6, 7, 8}});
 
-    private static final long sleepDuration = TimeUnit.SECONDS.toMillis(5);
-
-    public static void main(String[] args) throws InterruptedException {
-        Thread mainThread = Thread.currentThread();
-
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         long startTimestamp;
         long finishTimestamp;
 
-//        for (int i = 0; i < 100; i++) {
-            WorkingStack workingStack = new WorkingStack(initialField, finalField);
-            Thread worker = new Thread(() -> workingStack.search(mainThread));
-            worker.setPriority(Thread.MAX_PRIORITY);
+        for (int i = 0; i < MAX_LAYER; i++) {
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
 
             startTimestamp = System.currentTimeMillis();
-            worker.start();
-            while (worker.isAlive()) {
-                try {
-                    /*System.out.println("Work in progress: steps = " + workingStack.getSteps() +
-                            ", stack size = " + workingStack.getStack().size() +
-                            ", set size = " + workingStack.getFields().size());*/
-                    Thread.sleep(sleepDuration);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
+            Future<WorkingStack> result = executorService.submit(new WorkingStack(initialField, finalField, i)::search);
+            executorService.shutdown();
+            WorkingStack workingStack = result.get();
             finishTimestamp = System.currentTimeMillis();
 
-            System.out.println(".\tTime taken: " + (finishTimestamp - startTimestamp) + " ms\n");
-
-//            Thread.sleep(500);
-//        }
+            workingStack.printAllFoundDecisions(false);
+            System.out.println("\nTime taken: " + (finishTimestamp - startTimestamp) + " ms\n\n");
+        }
     }
 }
