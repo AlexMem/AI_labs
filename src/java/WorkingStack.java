@@ -1,6 +1,5 @@
 import enums.Direction;
 import exceptions.FieldRepeatsException;
-import exceptions.MaxLayerReachedException;
 import exceptions.NoAvailableDirectionsException;
 import utils.Randomizer;
 
@@ -8,23 +7,17 @@ import java.util.*;
 
 public class WorkingStack {
 
-    private final static long MAX_NUMBER_OF_STEPS = Long.MAX_VALUE;
-
     private final Stack<State> stack = new OwnStack<>();
     private final Set<Field> fields = new HashSet<>();
     private final Field finalField;
     private long steps;
     private int layer;
-    private /*final*/ int maxLayer;
 
-    private final Map<Stack<State>, Long> decisions = new HashMap<>();
-
-    public WorkingStack(Field initialField, Field finalField, int maxLayer) {
+    public WorkingStack(Field initialField, Field finalField) {
         this.finalField = finalField;
         stack.add(new State(initialField));
         fields.add(initialField);
         this.layer = 1;
-        this.maxLayer = maxLayer;
     }
 
     public Stack<State> getStack() {
@@ -47,64 +40,38 @@ public class WorkingStack {
         return stack.size() - 1;
     }
 
-    public Map<Stack<State>, Long> getDecisions() {
-        return decisions;
-    }
-
     @SuppressWarnings("unchecked")
-    public WorkingStack search() {
+    public void search() {
         long startTime;
         long decisionFoundTime;
-        for (; layer <= maxLayer; ++layer) {
-            startTime = System.currentTimeMillis();
-            while (true) {
-                State state = stack.peek();
-                if (state.field.equals(finalField)) {
-                    decisionFoundTime = System.currentTimeMillis();
-                    if (!decisions.containsKey(stack)) {
-                        ((OwnStack<State>) stack).setSteps(steps);
-                        decisions.put((Stack<State>) stack.clone(), decisionFoundTime - startTime);
-                    }
-                }
+        startTime = System.currentTimeMillis();
+        while (true) {
+            State state = stack.peek();
+            if (state.field.equals(finalField)) {
+                decisionFoundTime = System.currentTimeMillis();
+//                stack.forEach(System.out::println);
+                System.out.println("\t\nDecision found on layer " + (stack.size() - 1));
+                System.out.println("\tHashCode = " + stack.hashCode());
+                System.out.println("\tSteps done = " + steps);
+                System.out.println("\tTime = " + (decisionFoundTime - startTime) + " ms");
+                return;
+            }
 
-                try {
-                    State nextState = state.nextState();
-                    ++steps;
-                    stack.push(nextState);
-                    fields.add(nextState.field);
-                } catch (NoAvailableDirectionsException | MaxLayerReachedException e) {
-                    if (stack.size() == 1 && e instanceof NoAvailableDirectionsException) {
-                        stack.peek().recountAvailableDirections();
-                        fields.clear();
-                        fields.add(stack.peek().field);
-                        steps = 0;
-                        break;
-                    }
-                    fields.remove(stack.pop().field);
-                } catch (FieldRepeatsException e) {
+            try {
+                State nextState = state.nextState();
+                ++steps;
+                stack.push(nextState);
+                fields.add(nextState.field);
+            } catch (NoAvailableDirectionsException e) {
+                if (stack.size() == 1) {
+                    break;
                 }
+                fields.remove(stack.pop().field);
+            } catch (FieldRepeatsException e) {
             }
         }
 
-        return this;
-    }
-
-    public void printAllFoundDecisions(boolean detailed) {
-        if (decisions.isEmpty()) {
-            System.out.println("Decisions not found absolute!");
-        } else {
-            System.out.println("Max layer = " + maxLayer + ". Found " + decisions.size() + " decisions:");
-            decisions.keySet().stream().sorted(Comparator.comparingInt(Stack::size))
-                     .forEach(stack -> {
-                         System.out.println("\t\nDecision found on layer " + (stack.size() - 1));
-                         System.out.println("\tHashCode = " + stack.hashCode());
-                         System.out.println("\tSteps done = " + ((OwnStack<State>) stack).getSteps());
-                         System.out.println("\tTime = " + decisions.get(stack) + " ms");
-                         if (detailed) {
-                             stack.forEach(System.out::println);
-                         }
-                     });
-        }
+        System.out.println("Decision was not found!");
     }
 
     class State {
@@ -117,13 +84,9 @@ public class WorkingStack {
             availableDirections = countAvailableDirections();
         }
 
-        public State nextState() throws NoAvailableDirectionsException, FieldRepeatsException, MaxLayerReachedException {
+        public State nextState() throws NoAvailableDirectionsException, FieldRepeatsException {
             if (availableDirections.isEmpty()) {
                 throw new NoAvailableDirectionsException();
-            }
-
-            if (stack.size() > layer) {
-                throw new MaxLayerReachedException();
             }
 
             Direction direction = chooseDirection();
@@ -136,10 +99,6 @@ public class WorkingStack {
             }
 
             return new State(newField);
-        }
-
-        public void recountAvailableDirections() {
-            availableDirections = countAvailableDirections();
         }
 
         @Override
