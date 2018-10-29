@@ -39,4 +39,21 @@ class FieldTest {
         assert !firstField.equals(thirdField);
         assert firstField.hashCode() != thirdField.hashCode();
     }
+
+    @Test
+    void h1Test() {
+        Field firstField = new Field(new Integer[][]{{$, 4, 3},
+                                                     {6, 2, 1},
+                                                     {7, 5, 8}});
+        Field secondField = new Field(new Integer[][]{{$, 4, 3},
+                                                      {6, 2, 1},
+                                                      {7, 5, 8}});
+        Field thirdField = new Field(new Integer[][]{{5, 4, 2},
+                                                     {8, 3, 1},
+                                                     {6, $, 7}});
+
+        assert firstField.computeH1(secondField) == 0;
+        assert firstField.computeH1(thirdField) == 7;
+        assert secondField.computeH1(thirdField) == 7;
+    }
 }

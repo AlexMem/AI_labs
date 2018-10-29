@@ -4,6 +4,7 @@ import utils.IntegerMatrixPrinter;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Field {
 
@@ -54,7 +55,7 @@ public class Field {
         return emptyPlacePosition;
     }
 
-    public void move(Direction direction) {
+    public Field move(Direction direction) {
         switch (direction) {
             case UP:
                 swapEmptyPlaceWith(emptyPlacePosition.x - 1, emptyPlacePosition.y);
@@ -69,6 +70,23 @@ public class Field {
                 swapEmptyPlaceWith(emptyPlacePosition.x, emptyPlacePosition.y - 1);
                 break;
         }
+        return this;
+    }
+
+    public int computeH1(Field finalField){
+        if(size != finalField.size) {
+            throw new IllegalArgumentException("Field's sizes incompatible");
+        }
+
+        int count = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (!Objects.equals(field[i][j], finalField.field[i][j])) {
+                    ++count;
+                }
+            }
+        }
+        return count;
     }
 
     @Override

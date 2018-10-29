@@ -1,7 +1,6 @@
 import enums.Direction;
 import exceptions.FieldRepeatsException;
 import exceptions.NoAvailableDirectionsException;
-import utils.Randomizer;
 
 import java.util.*;
 
@@ -20,36 +19,16 @@ public class WorkingStack {
         this.layer = 1;
     }
 
-    public Stack<State> getStack() {
-        return stack;
-    }
-
-    public Set<Field> getFields() {
-        return fields;
-    }
-
-    public long getSteps() {
-        return steps;
-    }
-
-    public int getLayer() {
-        return layer;
-    }
-
-    public int getCurrentLayer() {
-        return stack.size() - 1;
-    }
-
     @SuppressWarnings("unchecked")
     public void search() {
         long startTime;
         long decisionFoundTime;
         startTime = System.currentTimeMillis();
         while (true) {
+            System.out.println("Current layer: " + (stack.size() - 1));
             State state = stack.peek();
             if (state.field.equals(finalField)) {
                 decisionFoundTime = System.currentTimeMillis();
-//                stack.forEach(System.out::println);
                 System.out.println("\t\nDecision found on layer " + (stack.size() - 1));
                 System.out.println("\tHashCode = " + stack.hashCode());
                 System.out.println("\tSteps done = " + steps);
@@ -120,7 +99,9 @@ public class WorkingStack {
         }
 
         private Direction chooseDirection() {
-            return Randomizer.pick(availableDirections.toArray(new Direction[0]));
+            Map<Direction, Field> map = new HashMap<>();
+            availableDirections.forEach(direction -> map.put(direction, new Field(field).move(direction)));
+            return map.entrySet().stream().min(Comparator.comparingInt(o -> o.getValue().computeH1(finalField))).get().getKey();
         }
 
         private List<Direction> countAvailableDirections() {
