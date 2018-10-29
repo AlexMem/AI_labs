@@ -25,7 +25,7 @@ public class WorkingStack {
         long decisionFoundTime;
         startTime = System.currentTimeMillis();
         while (true) {
-            System.out.println("Current layer: " + (stack.size() - 1));
+//            System.out.println("Current layer: " + (stack.size() - 1));
             State state = stack.peek();
             if (state.field.equals(finalField)) {
                 decisionFoundTime = System.currentTimeMillis();
@@ -101,7 +101,7 @@ public class WorkingStack {
         private Direction chooseDirection() {
             Map<Direction, Field> map = new HashMap<>();
             availableDirections.forEach(direction -> map.put(direction, new Field(field).move(direction)));
-            return map.entrySet().stream().min(Comparator.comparingInt(o -> o.getValue().computeH1(finalField))).get().getKey();
+            return map.entrySet().stream().min(Comparator.comparingInt(o -> o.getValue().computeH2(finalField))).get().getKey();
         }
 
         private List<Direction> countAvailableDirections() {

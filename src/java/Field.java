@@ -73,8 +73,8 @@ public class Field {
         return this;
     }
 
-    public int computeH1(Field finalField){
-        if(size != finalField.size) {
+    public int computeH1(Field finalField) {
+        if (size != finalField.size) {
             throw new IllegalArgumentException("Field's sizes incompatible");
         }
 
@@ -87,6 +87,37 @@ public class Field {
             }
         }
         return count;
+    }
+
+    public int computeH2(Field finalField) {
+        if (size != finalField.size) {
+            throw new IllegalArgumentException("Field's sizes incompatible");
+        }
+
+        int count = 0;
+        Point coordsOfNumber;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                coordsOfNumber = getCoordsOf(finalField.field[j][i]);
+                count += Math.abs(j - coordsOfNumber.getY()) + Math.abs(i - coordsOfNumber.getX());
+            }
+        }
+        return count;
+    }
+
+    private Point getCoordsOf(Integer number) {
+        if (number == null) {
+            return getEmptyPlacePosition();
+        }
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (Objects.equals(field[i][j], number)) {
+                    return new Point(j, i);
+                }
+            }
+        }
+        throw new RuntimeException("Number not found");
     }
 
     @Override
