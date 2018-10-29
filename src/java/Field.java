@@ -98,8 +98,10 @@ public class Field {
         Point coordsOfNumber;
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                coordsOfNumber = getCoordsOf(finalField.field[j][i]);
-                count += Math.abs(j - coordsOfNumber.getY()) + Math.abs(i - coordsOfNumber.getX());
+                if(finalField.field[j][i] != null) {
+                    coordsOfNumber = getCoordsOf(finalField.field[j][i]);
+                    count += Math.abs(j - coordsOfNumber.getY()) + Math.abs(i - coordsOfNumber.getX());
+                }
             }
         }
         return count;

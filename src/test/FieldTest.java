@@ -73,7 +73,7 @@ class FieldTest {
                                                       {7, 5, 8}});
 
         assert firstField.computeH2(secondField) == 0;
-        assert firstField.computeH2(thirdField) == 16;
-        assert firstField.computeH2(fourthField) == 2;
+        assert firstField.computeH2(thirdField) == 13;
+        assert firstField.computeH2(fourthField) == 1;
     }
 }
